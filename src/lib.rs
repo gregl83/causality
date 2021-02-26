@@ -1,4 +1,4 @@
-//! Traits to implement Event Driver Architectures.
+//! Traits to implement Event Driven Architectures.
 
 /// Handles `Causes` ultimately producing `Effects`.
 ///
