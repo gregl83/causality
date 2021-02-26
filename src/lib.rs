@@ -1,3 +1,5 @@
+//! Traits to implement Event Driver Architectures.
+
 /// Handles `Causes` ultimately producing `Effects`.
 ///
 /// Implemented for `Aggregates` in `Event Sourcing`.
