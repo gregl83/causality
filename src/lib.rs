@@ -30,8 +30,8 @@ pub trait Effect {
     type Key;
     /// Returns version.
     fn version(&self) -> Self::Version;
-    /// Returns idempotency key.
-    fn idempotency_key(&self) -> Self::Key;
+    /// Returns unique key.
+    fn key(&self) -> Self::Key;
 }
 
 #[cfg(test)]
