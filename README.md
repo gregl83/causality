@@ -1,2 +1,7 @@
 # causality
-Rust Event Driven Architecture (EDA) Traits
+
+Event Driven Architecture (EDA) Traits
+
+## License
+
+[MIT](LICENSE)
