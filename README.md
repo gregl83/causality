@@ -3,6 +3,10 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gregl83/causality/blob/master/LICENSE)
 # causality
 
+> *"the relation between a cause and its effect or between regularly correlated events or phenomena"*
+> 
+> [Merriam-Webster](https://www.merriam-webster.com/dictionary/causality)
+
 Event Driven Architecture Traits.
 
 Prescriptive implementation of event sourcing models.
