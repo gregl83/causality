@@ -4,6 +4,8 @@
 pub trait Actor<C: Cause, E: Effect, Err> {
     /// Unique Id for `Actor`.
     type Id;
+    /// Version of `Actor` dependent on `Effects` applied.
+    type Version;
     /// Handle `Cause` returning vector of `Effects` or error.
     fn handle(&self, cause: C) -> Result<Vec<E>, Err>;
     /// Apply `Effects` on Actor.
@@ -16,8 +18,12 @@ pub trait Actor<C: Cause, E: Effect, Err> {
 pub trait Cause {
     /// Unique `Actor` Id.
     type ActorId;
+    /// Version of `Actor` handling `Cause` for ordering (optimistic concurrency).
+    type ActorVersion;
     /// Returns unique `Actor` Id
     fn actor_id(&self) -> Self::ActorId;
+    /// Returns `Actor` version.
+    fn actor_version(&self) -> Self::ActorVersion;
 }
 
 /// Event that *can* impact `Actors`.
