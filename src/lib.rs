@@ -144,4 +144,66 @@ mod tests {
 
         assert!(events.is_err());
     }
+
+    #[test]
+    fn actor_apply_effect_returning_ok() {
+        let event = Event {
+            version: String::from("1.0.0"),
+            key: String::from("alpha-1234")
+        };
+        #[allow(dead_code)]
+        struct Aggregate {
+            id: Id,
+            version: Version
+        }
+        impl Actor<Command, Event, SimpleError> for Aggregate {
+            type Id = Id;
+            type Version = Version;
+            fn handle(&self, _command: Command) -> Result<Vec<Event>, SimpleError> {
+                Err(SimpleError::new("shouldn't be called"))
+            }
+            fn apply(&mut self, effects: Vec<Event>) -> Result<(), SimpleError> {
+                if effects.len() == 1 {
+                    return Ok(());
+                }
+                Err(SimpleError::new("should have single effect"))
+            }
+        }
+        let mut aggregate = Aggregate {
+            id: String::from("alpha"),
+            version: String::from("one")
+        };
+        let result = aggregate.apply(vec![event]);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn actor_apply_effect_returning_error() {
+        #[allow(dead_code)]
+        struct Aggregate {
+            id: Id,
+            version: Version
+        }
+        impl Actor<Command, Event, SimpleError> for Aggregate {
+            type Id = Id;
+            type Version = Version;
+            fn handle(&self, _command: Command) -> Result<Vec<Event>, SimpleError> {
+                Err(SimpleError::new("shouldn't be called"))
+            }
+            fn apply(&mut self, effects: Vec<Event>) -> Result<(), SimpleError> {
+                if effects.len() == 1 {
+                    return Ok(());
+                }
+                Err(SimpleError::new("should have zero effects"))
+            }
+        }
+        let mut aggregate = Aggregate {
+            id: String::from("alpha"),
+            version: String::from("one")
+        };
+        let result = aggregate.apply(vec![]);
+
+        assert!(result.is_err());
+    }
 }
