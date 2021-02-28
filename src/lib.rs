@@ -82,6 +82,7 @@ mod tests {
             actor_id: String::from("one"),
             actor_version: String::from("two")
         };
+        #[allow(dead_code)]
         struct Aggregate {
             id: Id,
             version: Version
@@ -112,5 +113,35 @@ mod tests {
 
         assert!(events.is_ok());
         assert_eq!(events.unwrap().len(), 1);
+    }
+
+    #[test]
+    fn actor_handles_cause_returning_error() {
+        let command = Command {
+            actor_id: String::from("one"),
+            actor_version: String::from("two")
+        };
+        #[allow(dead_code)]
+        struct Aggregate {
+            id: Id,
+            version: Version
+        }
+        impl Actor<Command, Event, SimpleError> for Aggregate {
+            type Id = Id;
+            type Version = Version;
+            fn handle(&self, _command: Command) -> Result<Vec<Event>, SimpleError> {
+                Err(SimpleError::new("should have actor id one"))
+            }
+            fn apply(&mut self, _effects: Vec<Event>) -> Result<(), SimpleError> {
+                Err(SimpleError::new("shouldn't be called"))
+            }
+        }
+        let aggregate = Aggregate {
+            id: String::from("alpha"),
+            version: String::from("one")
+        };
+        let events = aggregate.handle(command);
+
+        assert!(events.is_err());
     }
 }
