@@ -1,9 +1,11 @@
 //! Traits to implement Event Driven Architectures.
 
+use std::error::Error;
+
 /// Handles `Causes` ultimately producing `Effects`.
 ///
 /// Implemented for `Aggregates` in `Event Sourcing`.
-pub trait Actor<C: Cause, E: Effect, Err> {
+pub trait Actor<C: Cause, E: Effect, Err: Error> {
     /// Unique Id for `Actor`.
     type Id;
     /// Version of `Actor` dependent on `Effects` applied.
@@ -44,10 +46,71 @@ pub trait Effect {
 
 #[cfg(test)]
 mod tests {
-    // TODO !!!
+    use super::*;
+
+    use simple_error::SimpleError;
+
+    type Id = String;
+    type Version = String;
+    type Key = String;
+
+    struct Command {
+        actor_id: Id,
+        actor_version: Version,
+    }
+    impl Cause for Command {
+        type ActorId = Id;
+        type ActorVersion = Version;
+        fn actor_id(&self) -> Self::ActorId { self.actor_id.clone() }
+        fn actor_version(&self) -> Self::ActorVersion { self.actor_version.clone() }
+    }
+
+    struct Event {
+        version: Version,
+        key: Key,
+    }
+    impl Effect for Event {
+        type Version = Version;
+        type Key = Key;
+        fn version(&self) -> Self::Version { self.version.clone() }
+        fn key(&self) -> Self::Key { self.key.clone() }
+    }
 
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn actor_handles_cause_returning_effect() {
+        let command = Command {
+            actor_id: String::from("one"),
+            actor_version: String::from("two")
+        };
+        struct Aggregate {
+            id: Id,
+            version: Version
+        }
+        impl Actor<Command, Event, SimpleError> for Aggregate {
+            type Id = Id;
+            type Version = Version;
+            fn handle(&self, command: Command) -> Result<Vec<Event>, SimpleError> {
+                if command.actor_id() == String::from("one") {
+                    return Ok(vec![
+                        Event {
+                            version: String::from("1.0.0"),
+                            key: String::from("alpha-1234")
+                        }
+                    ]);
+                }
+                Err(SimpleError::new("should have actor id one"))
+            }
+            fn apply(&mut self, _effects: Vec<Event>) -> Result<(), SimpleError> {
+                Err(SimpleError::new("shouldn't be called"))
+            }
+        }
+        let aggregate = Aggregate {
+            id: String::from("alpha"),
+            version: String::from("one")
+        };
+        let events = aggregate.handle(command);
+
+        assert!(events.is_ok());
+        assert_eq!(events.unwrap().len(), 1);
     }
 }
