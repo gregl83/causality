@@ -1,4 +1,105 @@
 //! Traits to implement Event Driven Architectures.
+//!
+//! # Example
+//!
+//! ```
+//! use simple_error::SimpleError;
+//! use causality::{Actor, Cause, Effect};
+//!
+//! enum Command {
+//!     TestDoor {actor_id: u32, actor_version: u8},
+//! }
+//!
+//! impl Cause for Command {
+//!     type ActorId = u32;
+//!     type ActorVersion = u8;
+//!     fn actor_id(&self) -> Self::ActorId {
+//!         match self {
+//!             Command::TestDoor {actor_id, ..} => {
+//!                 *actor_id
+//!             }
+//!         }
+//!     }
+//!     fn actor_version(&self) -> Self::ActorVersion {
+//!         match self {
+//!             Command::TestDoor {actor_version, ..} => {
+//!                 *actor_version
+//!             }
+//!         }
+//!     }
+//! }
+//!
+//! enum Event {
+//!     Opened {version: u8, key: u32},
+//!     Closed {version: u8, key: u32}
+//! }
+//!
+//! impl Effect for Event {
+//!     type Version = u8;
+//!     type Key = u32;
+//!     fn version(&self) -> Self::Version {
+//!         match self {
+//!             Event::Opened {version, ..} |
+//!             Event::Closed {version, ..} => {
+//!                 *version
+//!             }
+//!         }
+//!     }
+//!     fn key(&self) -> Self::Key {
+//!         match self {
+//!             Event::Opened {key, ..} |
+//!             Event::Closed {key, ..} => {
+//!                 *key
+//!             }
+//!         }
+//!     }
+//! }
+//!
+//! struct Door {
+//!     id: u32,
+//!     version: u8
+//! }
+//!
+//! impl Actor<Command, Event, SimpleError> for Door {
+//!     type Id = u32;
+//!     type Version = u8;
+//!     fn handle(&self, command: Command) -> Result<Vec<Event>, SimpleError> {
+//!         match command {
+//!             Command::TestDoor {actor_id, actor_version} => {
+//!                 return Ok(vec![
+//!                     Event::Opened {version: 1, key: 1},
+//!                     Event::Closed {version: 1, key: 2}
+//!                 ]);
+//!             }
+//!         }
+//!         Err(SimpleError::new("command should be found due to enum type"))
+//!     }
+//!     fn apply(&mut self, effects: Vec<Event>) -> Result<(), SimpleError> {
+//!         for effect in effects {
+//!             match effect {
+//!                 Event::Opened {key, ..} |
+//!                 Event::Closed {key, ..} => {
+//!                     self.version = key as u8;
+//!                 }
+//!             }
+//!         }
+//!         Ok(())
+//!     }
+//! }
+//!
+//! let mut door = Door {
+//!     id: 1,
+//!     version: 1
+//! };
+//! let command = Command::TestDoor {
+//!     actor_id: 1,
+//!     actor_version: 1
+//! };
+//! let events = door.handle(command).unwrap();
+//! assert_eq!(events.len(), 2);
+//! let result = door.apply(events);
+//! assert!(result.is_ok());
+//! ```
 
 use std::error::Error;
 
