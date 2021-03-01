@@ -11,7 +11,9 @@ Event Driven Architecture Traits.
 
 Prescriptive implementation of event sourcing models.
 
-## Docs
+Usage example in [documentation](#docs).
+
+## Documentation
 
 ```bash
 cargo doc --open

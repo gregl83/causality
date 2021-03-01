@@ -1,4 +1,10 @@
-//! Traits to implement Event Driven Architectures.
+//! Traits for implementing `Event Driven Architectures`.
+//!
+//! Borrowing with fervor from the `Theory of Causality` to conceptualize deterministic state.
+//!
+//! Ideas represented are often a reflection off of the work of others (`Causality`, `Event Sourcing`, `CQRS`, etc).
+//!
+//! **CAUTION:** Implementation hasn't had time to mature. Expect breaking changes.
 //!
 //! # Example
 //!
@@ -103,9 +109,9 @@
 
 use std::error::Error;
 
-/// Handles `Causes` ultimately producing `Effects`.
+/// Entity that handles `Causes` producing one or more `Effects` upon success.
 ///
-/// Implemented for `Aggregates` in `Event Sourcing`.
+/// Implemented for `Root Aggregates` or `Aggregates` in `Event Sourcing`.
 pub trait Actor<C: Cause, E: Effect, Err: Error> {
     /// Unique Id for `Actor`.
     type Id;
@@ -117,25 +123,27 @@ pub trait Actor<C: Cause, E: Effect, Err: Error> {
     fn apply(&mut self, effects: Vec<E>) -> Result<(), Err>;
 }
 
-/// Action that is expected to produce `Effects`.
+/// Action performed on `Actor` that is expected to produce `Effects`.
 ///
-/// Implemented for actions on `Actors`.
+/// Implemented for actions handled by `Actors`.
 pub trait Cause {
-    /// Unique `Actor` Id.
+    /// Unique `Actor` Id or aggregate key.
     type ActorId;
-    /// Version of `Actor` handling `Cause` for ordering (optimistic concurrency).
+    /// Version of `Actor` handling `Cause` for ordering (optimistic concurrency or staleness).
     type ActorVersion;
-    /// Returns unique `Actor` Id
+    /// Returns unique `Actor` Id.
     fn actor_id(&self) -> Self::ActorId;
     /// Returns `Actor` version.
     fn actor_version(&self) -> Self::ActorVersion;
 }
 
-/// Event that *can* impact `Actors`.
+/// Event produced from `Actor` handling `Cause`.
 ///
 /// Implemented for events produced by `Actors` handling `Causes`.
+///
+/// Expected that `Effects` are applied to `Actors` or `Aggregates` to represent state.
 pub trait Effect {
-    /// Data structure version.
+    /// Schema version use to maintain backwards compatibility.
     type Version;
     /// Unique key used for idempotency (duplicate detection).
     type Key;
